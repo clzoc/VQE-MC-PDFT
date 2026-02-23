@@ -1,0 +1,55 @@
+cff-version: 1.2.0
+title: >-
+  VQE-MC-PDFT: Multiconfiguration Pair-Density Functional Theory
+  Calculations of Ground and Excited States of Complex Chemical
+  Systems with Quantum Computers
+message: >-
+  If you use this software, please cite it using the metadata
+  from this file and the associated PNAS publication.
+type: software
+authors:
+  - given-names: Zhanou
+    family-names: Liu
+    affiliation: East China Normal University
+  - given-names: Yuhao
+    family-names: Chen
+    affiliation: East China Normal University
+  - given-names: Yingjin
+    family-names: Ma
+    affiliation: Chinese Academy of Sciences
+  - given-names: Xiao
+    family-names: He
+    email: xiaohe@phy.ecnu.edu.cn
+    affiliation: East China Normal University
+  - given-names: Yuxin
+    family-names: Deng
+    email: yxdeng@msg.sufe.edu.cn
+    affiliation: Shanghai University of Finance and Economics
+license: MIT
+repository-code: "https://github.com/quantum-chemistry/vqe-mcpdft-cutting"
+keywords:
+  - quantum chemistry
+  - variational quantum eigensolver
+  - multiconfiguration pair-density functional theory
+  - quantum circuit cutting
+  - strong electron correlation
+  - chromium dimer
+preferred-citation:
+  type: article
+  title: >-
+    Multiconfiguration Pair-Density Functional Theory Calculations
+    of Ground and Excited States of Complex Chemical Systems
+    with Quantum Computers
+  authors:
+    - given-names: Zhanou
+      family-names: Liu
+    - given-names: Yuhao
+      family-names: Chen
+    - given-names: Yingjin
+      family-names: Ma
+    - given-names: Xiao
+      family-names: He
+    - given-names: Yuxin
+      family-names: Deng
+  journal: Proceedings of the National Academy of Sciences
+  year: 2025

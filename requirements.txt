@@ -1,0 +1,10 @@
+# Exact version pins for reproducibility (PNAS submission).
+# Install: pip install -r requirements.txt
+# These versions were used for all results in the manuscript.
+numpy==1.26.4
+scipy==1.12.0
+pyscf==2.5.0
+tensorcircuit==0.12.0
+networkx==3.2.1
+pandas==2.2.0
+matplotlib==3.8.2

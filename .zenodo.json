@@ -1,0 +1,24 @@
+{
+  "title": "VQE-MC-PDFT: Code for Multiconfiguration Pair-Density Functional Theory Calculations of Ground and Excited States of Complex Chemical Systems with Quantum Computers",
+  "description": "Reproducible code repository accompanying the PNAS manuscript. Implements a hybrid quantum-classical framework combining the Variational Quantum Eigensolver (VQE) with Multiconfiguration Pair-Density Functional Theory (MC-PDFT), featuring quantum circuit cutting for scalable active-space simulations and FEM-inspired readout error mitigation. Validated on C2, Cr2, and benzene using the Tencent Tianji-S2 superconducting quantum processor.",
+  "creators": [
+    {"name": "Liu, Zhanou", "affiliation": "East China Normal University"},
+    {"name": "Chen, Yuhao", "affiliation": "East China Normal University"},
+    {"name": "Ma, Yingjin", "affiliation": "Chinese Academy of Sciences"},
+    {"name": "He, Xiao", "affiliation": "East China Normal University"},
+    {"name": "Deng, Yuxin", "affiliation": "Shanghai University of Finance and Economics"}
+  ],
+  "license": "MIT",
+  "keywords": [
+    "quantum chemistry",
+    "variational quantum eigensolver",
+    "multiconfiguration pair-density functional theory",
+    "quantum circuit cutting",
+    "strong electron correlation",
+    "chromium dimer",
+    "near-term quantum computing"
+  ],
+  "related_identifiers": [],
+  "upload_type": "software",
+  "access_right": "open"
+}
