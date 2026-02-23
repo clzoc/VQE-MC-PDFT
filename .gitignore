@@ -1,0 +1,9 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+
+# Test and tooling caches
+.pytest_cache/
+
+# macOS
+.DS_Store
