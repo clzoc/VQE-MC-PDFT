@@ -19,11 +19,9 @@ authors:
     affiliation: Chinese Academy of Sciences
   - given-names: Xiao
     family-names: He
-    email: xiaohe@phy.ecnu.edu.cn
     affiliation: East China Normal University
   - given-names: Yuxin
     family-names: Deng
-    email: yxdeng@msg.sufe.edu.cn
     affiliation: Shanghai University of Finance and Economics
 license: MIT
 repository-code: "https://github.com/quantum-chemistry/vqe-mcpdft-cutting"

@@ -2,7 +2,7 @@
 
 **Multiconfiguration Pair-Density Functional Theory Calculations of Ground and Excited States of Complex Chemical Systems with Quantum Computers**
 
-*Zhanou Liu, Yuhao Chen, Yingjin Ma, Xiao He\*, Yuxin Deng\**
+*Zhanou Liu, Yuhao Chen, Yingjin Ma, Xiao He, Yuxin Deng*
 
 Code repository accompanying the PNAS manuscript. This package implements a hybrid quantum-classical framework combining the Variational Quantum Eigensolver (VQE) with Multiconfiguration Pair-Density Functional Theory (MC-PDFT), featuring quantum circuit cutting for scalable active-space simulations and FEM-inspired readout error mitigation.
 
@@ -272,8 +272,3 @@ The following optimizations were added in this revision:
 - **RDM stochastic policy** (`rdm.py`). For n_qubits > 13, stochastic RDM mode is enabled by default (overridable). A deterministic `numpy.random.Generator` is threaded through the class for reproducibility. Measurement burden warnings are emitted when projected Pauli term count exceeds threshold.
 - **Mitigation pipeline wiring** (`cr2_1p5A_cutting.py`). FEM is wired at counts level from per-qubit readout calibration rates and applied per fragment size. ZNE/CDR are wired at expectation-value level via `expval_mitigator`. Current ZNE/CDR implementations are heuristic and should be interpreted accordingly.
 - **Hamiltonian term screening** (`cutting_vqe.py`, `cutting_dispatch.py`). Terms with |coefficient| < 1e-10 are dropped before partitioning. Projected circuit-shot budget is computed and execution aborts if infeasible (>10M circuits in exact mode).
-
-## Contact
-
-- Xiao He (corresponding author): xiaohe@phy.ecnu.edu.cn -- East China Normal University
-- Yuxin Deng (corresponding author): yxdeng@msg.sufe.edu.cn -- Shanghai University of Finance and Economics
