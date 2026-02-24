@@ -13,8 +13,8 @@ authors = [
     {name = "Zhanou Liu"},
     {name = "Yuhao Chen"},
     {name = "Yingjin Ma"},
-    {name = "Xiao He"},
-    {name = "Yuxin Deng"},
+    {name = "Xiao He", email = "xiaohe@phy.ecnu.edu.cn"},
+    {name = "Yuxin Deng", email = "yxdeng@msg.sufe.edu.cn"},
 ]
 keywords = [
     "quantum chemistry",

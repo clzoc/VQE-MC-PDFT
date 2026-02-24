@@ -92,6 +92,7 @@ class CuttingDispatcher:
             def factory_direct(orb_angles):
                 def energy_fn(params):
                     return direct_energy_fn(params, orb_angles)
+
                 return energy_fn
 
             return factory_direct
@@ -104,6 +105,7 @@ class CuttingDispatcher:
         def factory_cutting(orb_angles):
             def energy_fn(params):
                 return self._evaluate_cutting(ctx, params, orb_angles)
+
             return energy_fn
 
         return factory_cutting
@@ -187,7 +189,7 @@ class CuttingDispatcher:
             pauli_labels: List[str],
         ) -> Dict[str, float]:
             from .reconstruction import group_commuting_paulis
-            
+
             result: Dict[str, float] = {}
             # Handle identity terms separately
             remaining_labels = []
@@ -196,15 +198,15 @@ class CuttingDispatcher:
                     result[label] = 1.0
                 else:
                     remaining_labels.append(label)
-            
+
             if not remaining_labels:
                 return result
-            
+
             # Split into QWC groups, run each group separately
             qwc_groups = group_commuting_paulis(remaining_labels)
             configs = None
             results_by_group: Dict[tuple, Dict[tuple, Dict[str, int]]] = {}
-            
+
             for group in qwc_groups:
                 group_key = tuple(sorted(group))
                 fragment_results, group_configs = self._run_fragments(
@@ -213,7 +215,7 @@ class CuttingDispatcher:
                 if configs is None:
                     configs = group_configs
                 results_by_group[group_key] = fragment_results
-            
+
             # Reconstruct each Pauli from its corresponding group's results
             for label in remaining_labels:
                 # Find which group contains this Pauli
@@ -223,11 +225,11 @@ class CuttingDispatcher:
                         break
                 else:
                     raise ValueError(f"Pauli {label} not found in any QWC group")
-                
+
                 result[label] = ctx["reconstructor"].reconstruct_expectation(
                     results_by_group[group_key], label, configs
                 )
-            
+
             return result
 
         return pauli_expval_fn
@@ -256,18 +258,20 @@ class CuttingDispatcher:
         # Screen negligible Hamiltonian terms
         _SCREEN_THRESHOLD = 1e-10
         n_original = len(hamiltonian)
-        hamiltonian = {ps: c for ps, c in hamiltonian.items() if abs(c) > _SCREEN_THRESHOLD}
+        hamiltonian = {
+            ps: c for ps, c in hamiltonian.items() if abs(c) > _SCREEN_THRESHOLD
+        }
         if len(hamiltonian) < n_original:
-            logger.info("Hamiltonian screening: %d -> %d terms", n_original, len(hamiltonian))
+            logger.info(
+                "Hamiltonian screening: %d -> %d terms", n_original, len(hamiltonian)
+            )
 
         ansatz = CASCIAnsatz(n_qubits, n_electrons, self.n_vqe_layers)
         partitioner = CircuitPartitioner(n_qubits, self.max_device_qubits)
         entangling_gates = ansatz.get_qubit_pairs()
         partition = partitioner.partition(entangling_gates, orbital_symmetries)
 
-        decomposition = ChannelDecomposition(
-            partition.n_cuts
-        )
+        decomposition = ChannelDecomposition(partition.n_cuts)
         reconstructor = CuttingReconstructor(partition, decomposition)
 
         if self.use_sampling is None:
@@ -283,8 +287,11 @@ class CuttingDispatcher:
         logger.info(
             "CuttingDispatcher: %d qubits -> %d clusters, %d cuts, "
             "kappa=%.1f, sampling=%s",
-            n_qubits, partition.n_clusters, partition.n_cuts,
-            partition.overhead_kappa, use_sampling
+            n_qubits,
+            partition.n_clusters,
+            partition.n_cuts,
+            partition.overhead_kappa,
+            use_sampling,
         )
 
         return {
@@ -305,13 +312,16 @@ class CuttingDispatcher:
         params: np.ndarray,
         orb_angles: np.ndarray | None,
         pauli_group: Optional[List[str]] = None,
-    ) -> Tuple[Dict[Tuple[int, int], Dict[str, int]], List[Tuple[Tuple[int, ...], complex]]]:
+    ) -> Tuple[
+        Dict[Tuple[int, int], Dict[str, int]], List[Tuple[Tuple[int, ...], complex]]
+    ]:
         """Generate, execute, and return fragment results + configs.
 
         A single config set is generated and used for both fragment
         generation and reconstruction (fixes config mismatch bug).
         """
         from quantum_circuit_cutting.fragment_circuits import FragmentCircuitGenerator
+
         partition = ctx["partition"]
         decomposition = ctx["decomposition"]
         use_sampling = ctx["use_sampling"]
@@ -324,13 +334,6 @@ class CuttingDispatcher:
             )
         else:
             configs = decomposition.enumerate_configurations()
-
-        # Group Paulis into QWC groups for measurement basis optimization
-
-        # if pauli_group is not None and len(pauli_group) > 1:
-        #     qwc_groups = group_commuting_paulis(pauli_group)
-        #     # Use first group's representative for measurement basis
-        #     pauli_group = qwc_groups[0]
 
         generator = FragmentCircuitGenerator(
             partition=partition,
@@ -352,7 +355,9 @@ class CuttingDispatcher:
                 if self.tqp_backend is not None:
                     counts = self.tqp_backend.submit_circuit(f.circuit)  # type: ignore
                 else:
-                    raise RuntimeError("TQP backend is required for execution. Simulator fallback is not supported per hardware-only policy.")
+                    raise RuntimeError(
+                        "TQP backend is required for execution. Simulator fallback is not supported per hardware-only policy."
+                    )
                 # Apply error mitigation pipeline
                 for mit_fn in self.mitigation_pipeline:
                     counts = mit_fn(counts, f.circuit, f.n_qubits)
@@ -430,7 +435,7 @@ class CuttingDispatcher:
             orb_angles: Optional[np.ndarray] = None,
         ) -> float:
             circuit = ansatz.build_circuit(params, orb_angles)
-            
+
             if self.tqp_backend is None:
                 raise RuntimeError(
                     "TQP backend is required for execution. "
@@ -459,6 +464,7 @@ class CuttingDispatcher:
                     meas_circuit = circuit.copy()
                     # Use the most general observable across the group
                     from .reconstruction import measurement_basis_key
+
                     general_basis = measurement_basis_key(group)
                     for i, op in enumerate(general_basis):
                         if op == "X":

@@ -159,6 +159,9 @@ class FragmentCircuitGenerator:
                 tuples.  If provided, use_sampling/n_samples are ignored.
                 This ensures the same config set is used for fragment
                 generation and reconstruction.
+            pauli_group: Optional list of Pauli strings to use as measurement
+                basis for all fragments. If None, default measurement bases
+                are used.
 
         Returns:
             List of lists: outer index = configuration, inner = clusters.

@@ -77,6 +77,10 @@ class SelfConsistentVQEMCPDFT:
         max_outer_iter: Maximum outer-loop iterations.
         orbital_conv_threshold: Convergence threshold for orbital gradient.
         orbital_step_size: Step size alpha for orbital update (Eq. 22).
+        pauli_expval_fn: Optional backend function for Pauli expectation values.
+            Signature: (params, orbital_angles, pauli_labels) -> Dict[str, float].
+            If provided, used for hardware-backed execution. If None, falls back
+            to statevector simulation (for local development/testing only).
     """
 
     def __init__(

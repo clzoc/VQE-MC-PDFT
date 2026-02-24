@@ -2,8 +2,6 @@
 
 **Multiconfiguration Pair-Density Functional Theory Calculations of Ground and Excited States of Complex Chemical Systems with Quantum Computers**
 
-*Zhanou Liu, Yuhao Chen, Yingjin Ma, Xiao He, Yuxin Deng*
-
 Code repository accompanying the PNAS manuscript. This package implements a hybrid quantum-classical framework combining the Variational Quantum Eigensolver (VQE) with Multiconfiguration Pair-Density Functional Theory (MC-PDFT), featuring quantum circuit cutting for scalable active-space simulations and FEM-inspired readout error mitigation.
 
 ## Method Overview
@@ -218,57 +216,10 @@ result = solver.run(hamiltonian=ham, orbital_symmetries=symmetries)
 
 ## Citation
 
-```bibtex
-@article{liu2025vqemcpdft,
-  title   = {Multiconfiguration Pair-Density Functional Theory Calculations
-             of Ground and Excited States of Complex Chemical Systems
-             with Quantum Computers},
-  author  = {Liu, Zhanou and Chen, Yuhao and Ma, Yingjin and He, Xiao and Deng, Yuxin},
-  journal = {Proceedings of the National Academy of Sciences},
-  year    = {2025}
-}
-```
-
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
-## Troubleshooting
-
-| Problem | Solution |
-|---------|----------|
-| `ModuleNotFoundError: No module named 'tensorcircuit'` | Install exact versions: `pip install -r requirements.txt` |
-| `pyscf.lib.exceptions.BasisNotFoundError` | Ensure PySCF >= 2.4 and the basis set name matches exactly (e.g., `cc-pvtz`, not `cc-pVTZ`) |
-| TQP SDK `AuthenticationError` | Verify your token in `token-for-quantum-tencent` and call `apis.set_token(token)` |
-| `MemoryError` for large active spaces (e.g., Cr2 (48e,42o)) | Use circuit cutting (`cr2_1p5A_cutting.py`) and reduce shot budgets/group counts during debugging. |
-| VQE not converging | Increase `max_outer_iter`, reduce `orbital_step_size`, or try different initial parameters via `ansatz.initial_params(seed=N)` |
-| Results differ slightly from paper tables | Hardware results can fluctuate within error bars due to shot noise and device drift. Random seeds (`seed=42`) only control classical optimizer randomness. |
-
 ## Note on Reproducibility
 
 All experiment scripts use fixed random seeds (`np.random.seed(42)`) for classical optimizer reproducibility. Results obtained on quantum hardware (Tianji-S2) may fluctuate within reported error bars due to shot noise and temporal calibration variation.
-
-## Technical Optimizations
-
-### Existing Optimizations
-
-The following optimizations are present in the baseline implementation:
-
-- **Symmetry-guided partitioning** (`partition.py`). When MO symmetry labels are available (e.g., D∞h for Cr2), qubits sharing the same irreducible representation are grouped into the same cluster before any graph-based refinement, reducing inter-cluster entangling gates. Reference: Peng et al., PRL 125, 150504 (2020).
-- **QWC observable grouping** (`reconstruction.py`). Pauli strings that commute qubit-wise (QWC) are measured in a single circuit execution, reducing the number of distinct measurement bases. Greedy graph-coloring is used for grouping. Reference: Verteletskyi et al., J. Chem. Phys. 152, 124114 (2020).
-- **Shared sampling configurations for gradient estimation** (`cutting_vqe.py`). The parameter-shift gradient uses the same set of sampled channel configurations for both E(θ+s) and E(θ−s), ensuring correlated noise cancellation and lower gradient variance.
-- **Hardware-only execution policy** (`experiments/`). All experiment scripts require a valid TQP hardware token for execution, ensuring all results are generated on real Tianji-S2 quantum hardware.
-
-### New Optimizations
-
-The following optimizations were added in this revision:
-
-- **Best-first search cut finding** (`partition.py`, `strategy="best_first"`). A priority-queue-based search explores partial qubit-to-cluster assignments ordered by an admissible lower bound on the cut count. Branches whose lower bound exceeds the best complete solution found so far are pruned. When symmetry labels are available, the heuristic biases assignment toward same-symmetry grouping. The spectral-bisection solution seeds the initial upper bound. Applicable to systems where the spectral heuristic yields suboptimal partitions (e.g., irregular interaction graphs). Inspired by Tang et al., "CutQC" (2021) and the Qiskit Circuit Knitting Toolbox `automated_cut_finding` module.
-- **Measurement-basis reuse** (`reconstruction.py`, `rdm.py`, `cutting_vqe.py`). A `MeasurementCache` stores fragment measurement results keyed by `(config_idx, cluster_idx, basis_signature)`. When multiple QWC groups require the same measurement rotations on the same fragment, the circuit is executed only once and the cached result is reused. The `RDMMeasurement.grouped_measurement_bases()` method pre-groups Pauli bases by QWC compatibility to facilitate this reuse. Applicable to RDM measurement in the self-consistent MC-PDFT loop, where the number of unique measurement bases is typically smaller than the number of QWC groups. Reference: Peng et al., PRL 125, 150504 (2020).
-- **Exponential-backoff hardware retry** (`tqp_backend.py`, `cutting_vqe.py`). `TQPBackend.submit_circuit` and `submit_batch` retry up to 3 times with exponential backoff (2 s, 4 s, 8 s) on transient network errors, queue timeouts, or hardware faults. A `_validate_counts` check rejects empty or all-zero measurement results and triggers a retry. After exhausting retries, the sub-batch returns empty results and logs a warning rather than aborting the VQE iteration, enabling graceful degradation during long-running experiments.
-- **General QWC observable construction** (`fragment_circuits.py`, `cutting_dispatch.py`). Fragment measurement rotations now use the "most general observable" across the entire QWC group (via `measurement_basis_key`), not just the first/representative Pauli string. This prevents silent measurement errors when the first Pauli has `I` on a qubit but later terms in the same group require `X` or `Y` rotations.
-- **QWC-group-aware energy reconstruction** (`cutting_vqe.py`, `cutting_dispatch.py`). Both `PartitionedVQEMCPDFT` and `CuttingDispatcher` now split Hamiltonian terms into QWC groups and generate separate fragment circuits (with correct measurement bases) for each group. Reconstruction uses only each group's own measurement data. The parameter-shift gradient path uses the same group-aware evaluation.
-- **Reconstruction integrity checks** (`reconstruction.py`). `CuttingReconstructor.validate_fragment_results()` checks expected result cardinality (n_configs × n_clusters) and raises `ValueError` on missing fragment keys. Pauli string length is validated against total qubits.
-- **RDM stochastic policy** (`rdm.py`). For n_qubits > 13, stochastic RDM mode is enabled by default (overridable). A deterministic `numpy.random.Generator` is threaded through the class for reproducibility. Measurement burden warnings are emitted when projected Pauli term count exceeds threshold.
-- **Mitigation pipeline wiring** (`cr2_1p5A_cutting.py`). FEM is wired at counts level from per-qubit readout calibration rates and applied per fragment size. ZNE/CDR are wired at expectation-value level via `expval_mitigator`. Current ZNE/CDR implementations are heuristic and should be interpreted accordingly.
-- **Hamiltonian term screening** (`cutting_vqe.py`, `cutting_dispatch.py`). Terms with |coefficient| < 1e-10 are dropped before partitioning. Projected circuit-shot budget is computed and execution aborts if infeasible (>10M circuits in exact mode).
