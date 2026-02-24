@@ -129,7 +129,6 @@ python experiments/cr2_basis_set.py --token YOUR_TQP_TOKEN
 # Fig. 6: Cr2 84-qubit circuit cutting (with optional error mitigation)
 python experiments/cr2_1p5A_cutting.py --token YOUR_TQP_TOKEN
 python experiments/cr2_1p5A_cutting.py --token YOUR_TQP_TOKEN --mitigation fem
-python experiments/cr2_1p5A_cutting.py --token YOUR_TQP_TOKEN --n-qubits 52
 
 # Fig. 7: Benzene excitations (12 qubits, direct hardware mode)
 python experiments/benzene_excitations.py --token YOUR_TQP_TOKEN
