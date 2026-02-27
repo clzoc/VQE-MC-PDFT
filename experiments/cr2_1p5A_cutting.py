@@ -20,9 +20,9 @@ from pyscf import gto, scf, mcscf
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from quantum_circuit_cutting import PartitionedVQEMCPDFT  # noqa: E402
-from vqe_mcpdft import build_qubit_hamiltonian  # noqa: E402
-from vqe_mcpdft.hamiltonian import _expand_integrals_to_spin_orbitals  # noqa: E402
+from quantum_circuit_cutting import PartitionedVQEMCPDFT
+from vqe_mcpdft import build_qubit_hamiltonian
+from vqe_mcpdft.hamiltonian import _expand_integrals_to_spin_orbitals
 from vqe_mcpdft.mcpdft_energy import MCPDFTEnergy as MCPDFT
 from vqe_mcpdft.rdm import RDMMeasurement as RDMMeasurer
 from vqe_mcpdft.orbital_rotation import OrbitalRotationCircuit

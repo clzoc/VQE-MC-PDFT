@@ -24,7 +24,7 @@ from pyscf import gto, scf, mcscf, dft
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from vqe_mcpdft import (  # noqa: E402
+from vqe_mcpdft import (
     CASCIAnsatz,
     MCPDFTEnergy,
     OrbitalRotationCircuit,
@@ -32,9 +32,9 @@ from vqe_mcpdft import (  # noqa: E402
     SelfConsistentVQEMCPDFT,
     build_qubit_hamiltonian,
 )
-from vqe_mcpdft.hamiltonian import _expand_integrals_to_spin_orbitals  # noqa: E402
-from vqe_mcpdft.tqp_backend import TQPBackend  # noqa: E402
-from quantum_circuit_cutting.cutting_dispatch import CuttingDispatcher  # noqa: E402
+from vqe_mcpdft.hamiltonian import _expand_integrals_to_spin_orbitals
+from vqe_mcpdft.tqp_backend import TQPBackend
+from quantum_circuit_cutting.cutting_dispatch import CuttingDispatcher
 
 import argparse
 
