@@ -58,9 +58,7 @@ Code-for-PNAS/
 ├── tests/                         # Unit and integration tests
 ├── pyproject.toml                 # PEP 621 project metadata
 ├── requirements.txt               # Exact version pins for reproducibility
-├── CITATION.cff                   # Machine-readable citation
-├── LICENSE                        # MIT License
-└── .zenodo.json                   # Zenodo archival metadata
+└── LICENSE                        # MIT License
 ```
 
 ## Execution Model
