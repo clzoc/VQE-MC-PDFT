@@ -1,4 +1,4 @@
-# Exact version pins for reproducibility (PNAS submission).
+# Exact version pins for reproducibility (manuscript submission).
 # Install: pip install -r requirements.txt
 # These versions were used for all results in the manuscript.
 numpy==1.26.4
