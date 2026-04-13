@@ -16,49 +16,42 @@ Self-consistent orbital optimization is achieved by computing the MC-PDFT orbita
 ## Repository Structure
 
 ```
-Code-for-PNAS/
-├── vqe_mcpdft/                    # Core VQE-MC-PDFT implementation
-│   ├── hamiltonian.py             #   Fermionic Hamiltonian + Jordan-Wigner mapping (Eqs. 2-5)
-│   ├── ansatz.py                  #   CASCI particle-conserving ansatz (Eqs. 6-8)
-│   ├── orbital_rotation.py        #   Orbital rotation via Suzuki-Trotter (Eqs. 16-27)
-│   ├── mcpdft_energy.py           #   MC-PDFT ftPBE on-top functional + analytic Fock matrix (Eqs. 12-21)
-│   ├── rdm.py                     #   Full 1-RDM / 2-RDM Pauli measurement schedules (Eqs. 10-11)
-│   ├── vqe_solver.py              #   Inner-loop VQE with Adam optimizer
-│   ├── self_consistent.py         #   Outer-loop self-consistent driver (Fig. S1)
-│   └── tqp_backend.py             #   Tencent Tianji-S2 SDK interface with calibration-aware qubit selection
-├── quantum_circuit_cutting/       # Circuit cutting framework (SI Section S1.2)
-│   ├── channel_decomposition.py   #   8-channel identity decomposition (SI Eqs. S19-S27)
-│   ├── partition.py               #   Spectral bisection + KL refinement + symmetry-guided partitioning
-│   ├── fragment_circuits.py       #   Fragment circuit generation with state prep/measurement
-│   ├── reconstruction.py          #   Weighted reconstruction with QWC observable grouping
-│   ├── overhead.py                #   Sampling overhead budget and cut strategy selection
-│   ├── cutting_dispatch.py        #   Auto-routing dispatcher (direct vs cutting execution)
-│   └── cutting_vqe.py             #   Partitioned VQE-MC-PDFT driver (Fig. 6)
-├── error_mitigation/              # Error mitigation protocols
-│   ├── fem_readout.py             #   FEM-inspired multi-stage iterative readout correction (Eq. 33)
-│   ├── zne.py                     #   Zero-Noise Extrapolation via local unitary folding
-│   └── clifford_fitting.py        #   Clifford Data Regression error mitigation
-├── experiments/                   # Reproduction scripts for all figures and tables
-│   ├── c2_ground_state.py         #   Fig. 2: C2 ground-state PEC
-│   ├── c2_excited_states.py       #   Fig. 3: C2 excited-state PEC (9 states)
-│   ├── cr2_active_space.py        #   Fig. 4: Cr2 active-space scaling
-│   ├── cr2_basis_set.py           #   Fig. 5: Cr2 basis-set convergence
-│   ├── cr2_1p5A_cutting.py        #   Fig. 6: Cr2 84-qubit circuit cutting (48e,42o)
-│   ├── benzene_excitations.py     #   Fig. 7: Benzene pi->pi* excitations
-│   └── generate_figures.py        #   Generate all publication figures from data
-├── data/                          # Reference data (SI Tables S4-S10)
-│   ├── c2_ground_state_pec.csv    #   Table S4: C2 ground-state energies
-│   ├── c2_excited_state_pec.csv   #   Table S5: C2 excited-state energies
-│   ├── c2_excitation_energies.csv #   Table S6: C2 excitation energies
-│   ├── cr2_active_space.csv       #   Table S7: Cr2 active-space comparison
-│   ├── cr2_basis_set.csv          #   Table S8: Cr2 basis-set dependence
-│   ├── cr2_boxplot_raw.csv        #   Table S9: Cr2 1.50A raw data (50 runs x 4 qubit counts)
-│   ├── benzene_excitations.csv    #   Table S10: Benzene excitation energies
-│   └── tianji_s2_calibration.json #   Tables S2-S3: Hardware calibration data
-├── tests/                         # Unit and integration tests
-├── pyproject.toml                 # PEP 621 project metadata
-├── requirements.txt               # Exact version pins for reproducibility
-└── LICENSE                        # MIT License
+VQE-MC-PDFT/
+├── vqe_mcpdft/                  # Core VQE-MC-PDFT implementation
+├── quantum_circuit_cutting/     # Circuit cutting framework
+├── error_mitigation/            # FEM / ZNE / CDR mitigation utilities
+├── experiments/                 # Hardware-facing reproduction scripts
+│   ├── c2_ground_state.py
+│   ├── c2_excited_states.py
+│   ├── cr2_active_space.py
+│   ├── cr2_basis_set.py
+│   ├── cr2_1p5A_cutting.py
+│   ├── benzene_excitations.py
+│   └── generate_figures.py
+├── plot/                        # Figure renderers used by generate_figures.py
+│   ├── plot_fig2_c2_ground_state.py
+│   ├── plot_fig3_c2_excited_states.py
+│   ├── plot_fig4_cr2_active_space.py
+│   ├── plot_fig5_cr2_basis_set.py
+│   ├── plot_fig6_cr2_qubit_utilization.py
+│   ├── plot_fig7_benzene_vertical_excitations.py
+│   └── plot_supp_tianji_s2_hardware_fidelity.py
+├── data/                        # SI tables plus figure-rendering reference artifacts
+│   ├── c2_ground_state_pec.csv
+│   ├── c2_excited_state_pec.csv
+│   ├── c2_excitation_energies.csv
+│   ├── cr2_active_space.csv
+│   ├── cr2_basis_set.csv
+│   ├── cr2_boxplot_raw.csv
+│   ├── benzene_excitations.csv
+│   ├── cr2_active_space_figure.csv
+│   ├── cr2_basis_set_figure.csv
+│   ├── cr2_larsson_reference_curve.csv
+│   └── tianji_s2_calibration.json
+├── tests/
+├── pyproject.toml
+├── requirements.txt
+└── LICENSE
 ```
 
 ## Execution Model
@@ -84,7 +77,7 @@ Current cutting implementation uses static wire-cut channels and gate-level QPD 
 
 ```bash
 git clone <repository-url>
-cd Code-for-PNAS
+cd <repo-dir>
 pip install -r requirements.txt   # exact version pins for reproducibility
 pip install -e ".[dev]"
 ```
@@ -99,13 +92,15 @@ pip install -e ".[dev]"
 
 ### Generate Figures from Pre-computed Data
 
-All numerical data from the manuscript (SI Tables S4-S10) is provided in `data/`. To generate publication figures without re-running quantum computations:
+All numerical data used by the publication and reviewer plotting scripts is provided in `data/`, including SI Tables S4-S10 and auxiliary high-precision/reference artifacts used for figure rendering. To generate publication figures without re-running quantum computations:
 
 ```bash
 python experiments/generate_figures.py
 ```
 
-Figures are saved to `figures/`.
+Figures are saved to `figures/` using manuscript-style filenames such as `fig2_c2_ground_state.pdf` through `fig7_benzene_vertical_excitations.pdf`, with supplementary reviewer-facing plots saved separately, for example `figS1_tianji_s2_hardware_fidelity.pdf`.
+
+For the Cr2 qubit-utilization boxplot figure, the raw scatter points use a small Gaussian horizontal jitter inside each box (`np.random.normal(i + 1, 0.03, len(y))`) purely for visual separation. This does not modify the underlying energies, boxplot statistics, or reported numerical results.
 
 ### Running Experiments
 
@@ -213,10 +208,16 @@ result = solver.run(hamiltonian=ham, orbital_symmetries=symmetries)
 
 ## Citation
 
+If you use this repository, cite the accompanying manuscript:
+
+**Multiconfiguration Pair-Density Functional Theory Calculations of Low-lying States of Complex Chemical Systems with Quantum Computers**
+
+For repository-based reproduction, also reference this codebase in the methods or data-availability statement as the implementation used to generate the reported figures and tables.
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ## Note on Reproducibility
 
-All experiment scripts use fixed random seeds (`np.random.seed(42)`) for classical optimizer reproducibility. Results obtained on quantum hardware (Tianji-S2) may fluctuate within reported error bars due to shot noise and temporal calibration variation.
+All experiment scripts use fixed random seeds (`np.random.seed(42)`) for classical optimizer reproducibility. The reviewer plotting scripts also keep fixed seeds where stochastic horizontal jitter is used only for visualization of dense scatter points in boxplots. Results obtained on quantum hardware (Tianji-S2) may fluctuate within reported error bars due to shot noise and temporal calibration variation.
