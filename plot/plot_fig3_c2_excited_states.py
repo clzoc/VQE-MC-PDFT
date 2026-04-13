@@ -1,4 +1,4 @@
-"""Plot the C2 excited-state comparison figure for the reviewer package."""
+"""Plot the C2 excited-state comparison figure for the manuscript figure set."""
 
 from __future__ import annotations
 

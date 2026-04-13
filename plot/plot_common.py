@@ -1,4 +1,4 @@
-"""Shared plotting helpers for reviewer-facing figure scripts."""
+"""Shared plotting helpers for manuscript figure-rendering scripts."""
 
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Plot the Cr2 basis-set comparison figure for the reviewer package."""
+"""Plot the Cr2 basis-set comparison figure for the manuscript figure set."""
 
 from __future__ import annotations
 

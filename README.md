@@ -92,13 +92,13 @@ pip install -e ".[dev]"
 
 ### Generate Figures from Pre-computed Data
 
-All numerical data used by the publication and reviewer plotting scripts is provided in `data/`, including SI Tables S4-S10 and auxiliary high-precision/reference artifacts used for figure rendering. To generate publication figures without re-running quantum computations:
+All numerical data used by the publication plotting scripts is provided in `data/`, including SI Tables S4-S10 and auxiliary high-precision/reference artifacts used for figure rendering. To generate publication figures without re-running quantum computations:
 
 ```bash
 python experiments/generate_figures.py
 ```
 
-Figures are saved to `figures/` using manuscript-style filenames such as `fig2_c2_ground_state.pdf` through `fig7_benzene_vertical_excitations.pdf`, with supplementary reviewer-facing plots saved separately, for example `figS1_tianji_s2_hardware_fidelity.pdf`.
+Figures are saved to `figures/` using manuscript-style filenames such as `fig2_c2_ground_state.pdf` through `fig7_benzene_vertical_excitations.pdf`, with supplementary plots saved separately, for example `figS1_tianji_s2_hardware_fidelity.pdf`.
 
 For the Cr2 qubit-utilization boxplot figure, the raw scatter points use a small Gaussian horizontal jitter inside each box (`np.random.normal(i + 1, 0.03, len(y))`) purely for visual separation. This does not modify the underlying energies, boxplot statistics, or reported numerical results.
 
@@ -206,18 +206,10 @@ result = solver.run(hamiltonian=ham, orbital_symmetries=symmetries)
 | Cr2 | (48e, 42o) | VQE-MC-PDFT + cutting | E_mean = -2086.4371 Ha (84 qubits) |
 | Benzene | (6e, 6o) | VQE-MC-PDFT | Excitation MAE = 0.048 eV vs TBE |
 
-## Citation
-
-If you use this repository, cite the accompanying manuscript:
-
-**Multiconfiguration Pair-Density Functional Theory Calculations of Low-lying States of Complex Chemical Systems with Quantum Computers**
-
-For repository-based reproduction, also reference this codebase in the methods or data-availability statement as the implementation used to generate the reported figures and tables.
-
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ## Note on Reproducibility
 
-All experiment scripts use fixed random seeds (`np.random.seed(42)`) for classical optimizer reproducibility. The reviewer plotting scripts also keep fixed seeds where stochastic horizontal jitter is used only for visualization of dense scatter points in boxplots. Results obtained on quantum hardware (Tianji-S2) may fluctuate within reported error bars due to shot noise and temporal calibration variation.
+All experiment scripts use fixed random seeds (`np.random.seed(42)`) for classical optimizer reproducibility. The plotting scripts also keep fixed seeds where stochastic horizontal jitter is used only for visualization of dense scatter points in boxplots. Results obtained on quantum hardware (Tianji-S2) may fluctuate within reported error bars due to shot noise and temporal calibration variation.

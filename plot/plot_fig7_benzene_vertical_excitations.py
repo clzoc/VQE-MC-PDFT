@@ -1,4 +1,4 @@
-"""Plot benzene vertical excitation energies for the reviewer package."""
+"""Plot benzene vertical excitation energies for the manuscript figure set."""
 
 from __future__ import annotations
 
