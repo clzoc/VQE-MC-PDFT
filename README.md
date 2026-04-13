@@ -63,7 +63,6 @@ The framework supports two hardware execution modes, selected automatically base
 **Cutting mode** (n_qubits > 13): The circuit is partitioned into fragments of at most 13 qubits via spectral bisection with Kernighan-Lin refinement. Each fragment is executed independently through `TQPBackend`, and expectation values/RDMs are reconstructed classically via quasi-probability decomposition (Peng et al., PRL 125, 150504).
 
 The `CuttingDispatcher` class handles mode selection transparently. In cutting mode, both energy evaluation and RDM measurement use the cutting reconstruction path.
-Current cutting implementation uses static wire-cut channels and gate-level QPD expansion for cross-cluster orbital-rotation terms; mid-circuit measurement/feedforward remains unsupported.
 
 | Experiment | Active Space | Qubits | Mode |
 |---|---|---|---|
@@ -136,12 +135,6 @@ The `cr2_1p5A_cutting.py` experiment supports configurable error mitigation via 
 - `cdr`: Heuristic expectation-value-level linear correction `E_ideal = a * E_noisy + b` with fixed coefficients unless external training data is provided.
 
 The FEM mitigation operates at the counts level (applied to each fragment's measurement counts before reconstruction). ZNE and CDR operate at the expectation-value level (applied to each reconstructed Pauli expectation value via the `expval_mitigator` callback on `CuttingReconstructor`). This two-level architecture ensures each mitigation method operates at its natural abstraction level.
-
-### Running Tests
-
-```bash
-pytest tests/ -v
-```
 
 ### Programmatic Usage
 
