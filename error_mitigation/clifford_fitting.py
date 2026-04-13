@@ -11,6 +11,8 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
+DEFAULT_RNG_SEED = 42
+
 
 class CliffordFitter:
     """Linear Clifford-fitting error mitigator.
@@ -43,14 +45,15 @@ class CliffordFitter:
         Args:
             circuit: A ``tensorcircuit.Circuit`` instance.
             n_training: Number of training circuits to generate.
-            rng: Optional numpy random generator for reproducibility.
+            rng: Optional numpy random generator for reproducibility. If
+                omitted, a generator seeded with ``DEFAULT_RNG_SEED`` is used.
 
         Returns:
             List of ``tensorcircuit.Circuit`` training circuits.
         """
         import tensorcircuit as tc
 
-        rng = rng or np.random.default_rng()
+        rng = rng or np.random.default_rng(DEFAULT_RNG_SEED)
         clifford_gates = ["i", "x", "y", "z", "h", "s"]
         non_clifford = {"rx", "ry", "rz", "rxx", "ryy", "rzz", "u", "any"}
 

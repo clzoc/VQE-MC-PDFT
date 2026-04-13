@@ -19,7 +19,7 @@ Self-consistent orbital optimization is achieved by computing the MC-PDFT orbita
 VQE-MC-PDFT/
 ├── vqe_mcpdft/                  # Core VQE-MC-PDFT implementation
 ├── quantum_circuit_cutting/     # Circuit cutting framework
-├── error_mitigation/            # FEM / ZNE / CDR mitigation utilities
+├── error_mitigation/            # Error-mitigation utilities
 ├── experiments/                 # Hardware-facing reproduction scripts
 │   ├── c2_ground_state.py
 │   ├── c2_excited_states.py
@@ -118,7 +118,7 @@ python experiments/cr2_active_space.py --token YOUR_TQP_TOKEN
 # Fig. 5: Cr2 basis-set convergence
 python experiments/cr2_basis_set.py --token YOUR_TQP_TOKEN
 
-# Fig. 6: Cr2 84-qubit circuit cutting (with optional error mitigation)
+# Fig. 6: Cr2 84-qubit circuit cutting (with optional FEM readout mitigation)
 python experiments/cr2_1p5A_cutting.py --token YOUR_TQP_TOKEN
 python experiments/cr2_1p5A_cutting.py --token YOUR_TQP_TOKEN --mitigation fem
 
@@ -131,10 +131,8 @@ python experiments/benzene_excitations.py --token YOUR_TQP_TOKEN
 The `cr2_1p5A_cutting.py` experiment supports configurable error mitigation via `--mitigation`:
 - `none` (default): No mitigation
 - `fem`: FEM-inspired readout correction from per-qubit F0/F1 calibration rates. Applied at the fragment-counts level with fragment-size-aware mitigators.
-- `zne`: Heuristic expectation-value-level correction using `ZeroNoiseExtrapolator.extrapolate()` with synthetic scale points.
-- `cdr`: Heuristic expectation-value-level linear correction `E_ideal = a * E_noisy + b` with fixed coefficients unless external training data is provided.
 
-The FEM mitigation operates at the counts level (applied to each fragment's measurement counts before reconstruction). ZNE and CDR operate at the expectation-value level (applied to each reconstructed Pauli expectation value via the `expval_mitigator` callback on `CuttingReconstructor`). This two-level architecture ensures each mitigation method operates at its natural abstraction level.
+The FEM mitigation operates at the counts level and is applied to each fragment's measurement counts before reconstruction.
 
 ### Programmatic Usage
 

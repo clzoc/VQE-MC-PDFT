@@ -253,6 +253,26 @@ class TestMitigationNonNoop:
         # Corrected should be closer to ideal than noisy
         assert abs(corrected - 0.5) < abs(0.4 - 0.5) + 0.1
 
+    def test_cdr_training_circuits_are_reproducible_without_rng(self):
+        from error_mitigation import CliffordFitter
+        import tensorcircuit as tc
+
+        circuit = tc.Circuit(2)
+        circuit.ry(0, theta=0.2)
+        circuit.rz(1, theta=0.4)
+        circuit.cnot(0, 1)
+
+        training_a = CliffordFitter.generate_training_circuits(circuit, n_training=4)
+        training_b = CliffordFitter.generate_training_circuits(circuit, n_training=4)
+
+        def summarize(training_circuits):
+            return [
+                [(gate["name"], tuple(gate["index"])) for gate in compiled.to_qir()]
+                for compiled in training_circuits
+            ]
+
+        assert summarize(training_a) == summarize(training_b)
+
 
 # ── F) Scalability controls ───────────────────────────────────────────
 

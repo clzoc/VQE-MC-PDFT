@@ -159,7 +159,7 @@ if __name__ == "__main__":
                         help="TQP authentication token (required)")
     parser.add_argument("--shots", type=int, default=10000,
                         help="Measurement shots per circuit")
-    parser.add_argument("--mitigation", type=str, choices=["none", "fem", "zne", "cdr"],
+    parser.add_argument("--mitigation", type=str, choices=["none", "fem"],
                         default="none", help="Error mitigation strategy (default: none)")
     args = parser.parse_args()
 
@@ -177,128 +177,79 @@ if __name__ == "__main__":
         ) from e
     
     # Build mitigation pipeline
+    expval_mitigator = None
     mitigation_pipeline = None
-    if args.mitigation != "none":
-        from error_mitigation import FEMReadoutMitigator, ZeroNoiseExtrapolator, CliffordFitter
-        if args.mitigation == "fem":
-            # FEM requires calibration data.
-            cal_path = Path(__file__).resolve().parents[1] / "data" / "tianji_s2_calibration.json"
-            if not cal_path.exists():
-                raise RuntimeError(
-                    f"FEM requires readout calibration artifact at {cal_path}. "
-                    f"Run a characterization protocol first, or use --mitigation none."
-                )
+    if args.mitigation == "fem":
+        from error_mitigation import FEMReadoutMitigator
 
-            import json
-            with open(cal_path) as f:
-                cal_data = json.load(f)
-
-            # Prefer direct per-qubit F0/F1 rates.
-            f0_errors = {}
-            f1_errors = {}
-            if "single_qubit" in cal_data:
-                f0_errors = dict(cal_data["single_qubit"].get("readout_error_F0", {}))
-                f1_errors = dict(cal_data["single_qubit"].get("readout_error_F1", {}))
-
-            # Fallback: derive F0/F1 from readout_calibration protocol_results (Qi_0 / Qi_1).
-            if (not f0_errors or not f1_errors) and "readout_calibration" in cal_data:
-                raw_results = cal_data["readout_calibration"].get("protocol_results", {})
-                for q in range(MAX_FRAGMENT_QUBITS):
-                    key0 = f"Q{q}_0"
-                    key1 = f"Q{q}_1"
-                    if key0 in raw_results:
-                        counts0 = raw_results[key0]
-                        total0 = sum(counts0.values()) or 1
-                        f0_errors[f"Q{q}"] = counts0.get("1", 0) / total0
-                    if key1 in raw_results:
-                        counts1 = raw_results[key1]
-                        total1 = sum(counts1.values()) or 1
-                        f1_errors[f"Q{q}"] = counts1.get("0", 0) / total1
-
-            if not f0_errors or not f1_errors:
-                raise RuntimeError(
-                    f"FEM requires per-qubit readout calibration data in {cal_path}. "
-                    "Expected single_qubit.readout_error_F0/F1 or readout_calibration.protocol_results."
-                )
-
-            # Cache mitigators by actual fragment size to avoid width mismatch.
-            fem_by_size: dict[int, FEMReadoutMitigator] = {}
-
-            def _fem_for_size(n_qubits: int) -> FEMReadoutMitigator:
-                if n_qubits not in fem_by_size:
-                    fem_by_size[n_qubits] = FEMReadoutMitigator.from_error_rates(
-                        n_qubits, f0_errors, f1_errors
-                    )
-                return fem_by_size[n_qubits]
-
-            logger.info(
-                "FEM: loaded per-qubit readout calibration from %s (dynamic fragment size)",
-                cal_path,
+        cal_path = Path(__file__).resolve().parents[1] / "data" / "tianji_s2_calibration.json"
+        if not cal_path.exists():
+            raise RuntimeError(
+                f"FEM requires readout calibration artifact at {cal_path}. "
+                f"Run a characterization protocol first, or use --mitigation none."
             )
 
-            def fem_mitigate(counts, circuit, n_qubits):
-                fem = _fem_for_size(n_qubits)
-                mitigated = fem.mitigate(counts)
-                # Convert quasi-probabilities back to integer counts
-                total = max(sum(counts.values()), 1)
-                corrected = {}
-                for k, v in mitigated.items():
-                    bitstring = k
-                    if len(bitstring) != n_qubits:
-                        bitstring = bitstring[-n_qubits:].rjust(n_qubits, "0")
-                    c = int(round(v * total))
-                    if c > 0:
-                        corrected[bitstring] = c
-                return corrected if corrected else counts
+        import json
+        with open(cal_path) as f:
+            cal_data = json.load(f)
 
-            mitigation_pipeline = [fem_mitigate]
-        elif args.mitigation == "zne":
-            zne = ZeroNoiseExtrapolator(degree=2)
-            scale_factors = [1, 3, 5]
-            # ZNE operates at expectation-value level via the expval_mitigator
-            # callback on CuttingReconstructor, not at the counts level.
-            # The counts-level pipeline is left empty; the reconstructor
-            # applies ZNE correction to each Pauli expectation value.
-            mitigation_pipeline = []
-            logger.info(f"Mitigation: ZNE enabled (scale factors {scale_factors}, expectation-value level)")
-        elif args.mitigation == "cdr":
-            cdr = CliffordFitter()
-            # CDR operates at expectation-value level via the expval_mitigator
-            # callback on CuttingReconstructor, not at the counts level.
-            mitigation_pipeline = []
-            logger.info("Mitigation: CDR enabled (expectation-value level correction)")
-        logger.info("Mitigation pipeline: %s", args.mitigation)
+        f0_errors = {}
+        f1_errors = {}
+        if "single_qubit" in cal_data:
+            f0_errors = dict(cal_data["single_qubit"].get("readout_error_F0", {}))
+            f1_errors = dict(cal_data["single_qubit"].get("readout_error_F1", {}))
 
-    # Build expectation-value-level mitigator for ZNE/CDR
-    expval_mitigator = None
-    if args.mitigation == "zne":
-        def zne_expval_mitigator(expval: float, pauli_str: str) -> float:
-            """Apply ZNE correction to a single Pauli expectation value.
+        if (not f0_errors or not f1_errors) and "readout_calibration" in cal_data:
+            raw_results = cal_data["readout_calibration"].get("protocol_results", {})
+            for q in range(MAX_FRAGMENT_QUBITS):
+                key0 = f"Q{q}_0"
+                key1 = f"Q{q}_1"
+                if key0 in raw_results:
+                    counts0 = raw_results[key0]
+                    total0 = sum(counts0.values()) or 1
+                    f0_errors[f"Q{q}"] = counts0.get("1", 0) / total0
+                if key1 in raw_results:
+                    counts1 = raw_results[key1]
+                    total1 = sum(counts1.values()) or 1
+                    f1_errors[f"Q{q}"] = counts1.get("0", 0) / total1
 
-            Uses the ZeroNoiseExtrapolator's extrapolate method with
-            pre-calibrated noise-level data.  For the first call, the
-            noise model is assumed linear: E(lambda) = a*lambda + b,
-            so E(0) = E(1) - (E(3)-E(1))/2 as a simple 2-point estimate.
-            """
-            # Simple linear extrapolation from noise factor 1 (measured)
-            # Assumes noise scales linearly: E_mitigated ≈ E_measured * correction
-            # A proper implementation would re-run at multiple noise levels,
-            # but that requires circuit access. Here we apply a conservative
-            # correction factor derived from the device's average gate error.
-            return zne.extrapolate([1, 3, 5], [expval, expval * 0.85, expval * 0.7])
-        expval_mitigator = zne_expval_mitigator
-        logger.info("ZNE expval_mitigator: polynomial extrapolation enabled")
-    elif args.mitigation == "cdr":
-        # CDR requires training data. Train once on a small reference circuit.
-        # For production, this should be done per-fragment, but a global
-        # linear model provides a reasonable first approximation.
-        cdr.a = 1.05  # Typical correction slope from Clifford training
-        cdr.b = 0.0   # Will be refined if training data is available
-        def cdr_expval_mitigator(expval: float, pauli_str: str) -> float:
-            """Apply CDR linear correction to a Pauli expectation value."""
-            return cdr.correct(expval)
-        expval_mitigator = cdr_expval_mitigator
-        logger.info("CDR expval_mitigator: linear correction (a=%.3f, b=%.3f)", cdr.a, cdr.b)
+        if not f0_errors or not f1_errors:
+            raise RuntimeError(
+                f"FEM requires per-qubit readout calibration data in {cal_path}. "
+                "Expected single_qubit.readout_error_F0/F1 or readout_calibration.protocol_results."
+            )
+
+        fem_by_size: dict[int, FEMReadoutMitigator] = {}
+
+        def _fem_for_size(n_qubits: int) -> FEMReadoutMitigator:
+            if n_qubits not in fem_by_size:
+                fem_by_size[n_qubits] = FEMReadoutMitigator.from_error_rates(
+                    n_qubits, f0_errors, f1_errors
+                )
+            return fem_by_size[n_qubits]
+
+        logger.info(
+            "FEM: loaded per-qubit readout calibration from %s (dynamic fragment size)",
+            cal_path,
+        )
+
+        def fem_mitigate(counts, circuit, n_qubits):
+            fem = _fem_for_size(n_qubits)
+            mitigated = fem.mitigate(counts)
+            total = max(sum(counts.values()), 1)
+            corrected = {}
+            for k, v in mitigated.items():
+                bitstring = k
+                if len(bitstring) != n_qubits:
+                    bitstring = bitstring[-n_qubits:].rjust(n_qubits, "0")
+                c = int(round(v * total))
+                if c > 0:
+                    corrected[bitstring] = c
+            return corrected if corrected else counts
+
+        mitigation_pipeline = [fem_mitigate]
+
+    logger.info("Mitigation pipeline: %s", args.mitigation)
 
     # Override qubit settings if specific n_qubits requested
     run_qubit_settings = QUBIT_SETTINGS
