@@ -192,8 +192,8 @@ result = solver.run(hamiltonian=ham, orbital_symmetries=symmetries)
 
 | System | Active Space | Method | Key Result |
 |--------|-------------|--------|------------|
-| C2 | (8e, 8o) | VQE-MC-PDFT | Req MAE = 0.006 A vs experiment |
-| C2 | (8e, 8o) | VQE-MC-PDFT | Excitation energy MAE = 0.10 eV |
+| C2 ground | (8e, 8o) | VQE-MC-PDFT + cutting | Req MAE = 0.006 A vs experiment |
+| C2 excitation | (8e, 8o) | VQE-MC-PDFT + cutting | Excitation energy MAE = 0.10 eV |
 | Cr2 | (48e, 42o) | VQE-MC-PDFT + cutting | E_mean = -2086.4371 Ha (84 qubits) |
 | Benzene | (6e, 6o) | VQE-MC-PDFT | Excitation MAE = 0.048 eV vs TBE |
 
