@@ -1,6 +1,6 @@
 # VQE-MC-PDFT
 
-**Multiconfiguration Pair-Density Functional Theory Calculations of Ground and Excited States of Complex Chemical Systems with Quantum Computers**
+**Multiconfiguration Pair-Density Functional Theory Calculations of Low-lying States of Complex Chemical Systems with Quantum Computers**
 
 Code repository accompanying the PNAS manuscript. This package implements a hybrid quantum-classical framework combining the Variational Quantum Eigensolver (VQE) with Multiconfiguration Pair-Density Functional Theory (MC-PDFT), featuring quantum circuit cutting for scalable active-space simulations and FEM-inspired readout error mitigation.
 

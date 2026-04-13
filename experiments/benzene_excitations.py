@@ -28,7 +28,7 @@ from quantum_circuit_cutting.cutting_dispatch import CuttingDispatcher
 
 N_ELEC, N_ORB = 6, 6
 BASIS = "aug-cc-pvtz"
-N_STATES = 6  # ground + 5 excited
+N_STATES = 6  # six low-lying states
 TRANSITIONS = [
     "11A1g_13B1u", "11A1g_13E1u", "11A1g_11B2u",
     "11A1g_13B2u", "11A1g_11B1u",
@@ -60,7 +60,7 @@ def build_benzene() -> gto.Mole:
 
 
 def run_benzene(tqp_backend: TQPBackend) -> pd.DataFrame:
-    """Run SA-CASSCF + VQE-MC-PDFT for benzene ground + 5 excited states."""
+    """Run SA-CASSCF + VQE-MC-PDFT for six low-lying benzene states."""
     mol = build_benzene()
     mf = scf.RHF(mol).run()
 
